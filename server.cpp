@@ -3,6 +3,7 @@
 #include <ws2tcpip.h>
 #include <string>
 #include <cstring>
+#include <sstream> // Add this for std::istringstream
 // This line is very important for Windows
 #pragma comment(lib, "ws2_32.lib")
 int main() 
@@ -45,18 +46,54 @@ int main()
     std::cout << "Server is listening on port 8080..." << std::endl;
 
     // This loop keeps the server running so it doesn't just exit!
+    // This loop keeps the server running so it doesn't just exit!
     while (true) {
         int addrlen = sizeof(address);
         
-        // The program will PAUSE here until you visit localhost:8080
-        int client_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
+        // Use SOCKET instead of int for Windows
+        SOCKET client_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen);
 
-        if (client_socket < 0) {
-            perror("Accept failed");
+        // Check against INVALID_SOCKET for Windows
+        if (client_socket == INVALID_SOCKET) {
+            std::cerr << "Accept failed with error: " << WSAGetLastError() << std::endl;
             continue; // Try again if one connection fails
         }
 
         std::cout << "Connection established! Someone visited the server." << std::endl;
+
+        // ==========================================
+        // DAY 3: READ AND PARSE THE HTTP REQUEST
+        // ==========================================
+        
+        // 1. Create a buffer to hold the incoming text
+        char buffer[2048] = {0}; 
+        
+        // 2. Read the data using recv()
+        int bytesReceived = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
+
+        if (bytesReceived > 0) {
+            // 3. Print the raw request
+            std::cout << "\n--- Raw HTTP Request ---\n";
+            std::cout << buffer << "\n";
+            std::cout << "------------------------\n";
+            
+            // 4. Parse the Method and Route
+            std::string request_str(buffer);
+            std::istringstream iss(request_str);
+            std::string method, route, http_version;
+            
+            // Extract the first three space-separated words
+            iss >> method >> route >> http_version;
+            
+            std::cout << "Parsed Method: [" << method << "]\n";
+            std::cout << "Parsed Route:  [" << route << "]\n\n";
+        } else if (bytesReceived == 0) {
+            std::cout << "Client closed the connection.\n";
+        } else {
+            std::cerr << "recv failed with error: " << WSAGetLastError() << std::endl;
+        }
+        
+        // ==========================================
 
         // Close the connection to this specific client so we can wait for the next one
         closesocket(client_socket); 
