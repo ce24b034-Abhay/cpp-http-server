@@ -1,6 +1,5 @@
 #include "HttpParser.h"
 #include <sstream>
-
 void parseHttpRequest(const std::string& request, std::string& method, std::string& route) 
 {
     std::istringstream iss(request);
