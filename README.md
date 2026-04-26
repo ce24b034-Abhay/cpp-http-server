@@ -1,6 +1,6 @@
 # Multithreaded C++ HTTP Server 🌐
 
-A lightweight, multithreaded web server built from scratch in C++ to understand the underlying mechanics of HTTP, POSIX sockets, and concurrent programming.
+A lightweight, multithreaded web server built from scratch in C++ to understand the underlying mechanics of HTTP, WinSock sockets, and concurrent programming.
 
 ## 🚀 Features
 
